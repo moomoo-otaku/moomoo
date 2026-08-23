@@ -105,6 +105,9 @@ export interface RelMember {
   fullScale?: number;            // 전신 크기 % (비율 유지, 미리보기 휠로 조절 — 기본 90)
   fullOffX?: number;             // 전신 가로 위치 오프셋 % (미리보기 드래그 — 기본 0, v1.9)
   fullOffY?: number;             // 전신 세로 위치 오프셋 % (기본 0 = 하단 밀착)
+  /** 멤버 카드 얼굴칸(1:1) 크롭 (v2.0) — 캐릭터의 리스트 썸네일은 3:4라
+   *  정사각 칸에 그대로 쓰면 어긋난다. 자관에서 따로 잡아 저장한다. */
+  faceCrop?: import('@/components/ui/CropEditor').CropValue;
   quoteColor?: string;           // 히어로 대사 글씨색 (페어, v1.9 — 기본 #d7dae0)
   quoteMarkColor?: string;       // 히어로 대사 따옴표색 (기본 포인트 소프트)
 }
@@ -171,6 +174,7 @@ export interface Relation {
   aus: RelAu[];                  // AU 리스트 (첫 항목 = 원본 base)
   cp?: RelCpTag;                 // 자관 기본 CP/NCP (등록 시 선택, v1.9)
   fullFront?: string;            // 전신 모드에서 앞에 보일 캐릭터 id (v1.9 — 미리보기에서 클릭 선택)
+  pairRight?: string;            // 페어에서 오른쪽 자리에 둘 캐릭터 id (v2.0 — 없으면 등록 순서대로)
   timeline: TlItem[];            // base AU의 타임라인
   questions: QaEntry[];          // base AU의 문답
   qaPool?: string[];             // base AU의 대기 질문 풀 (v1.9 — 랜덤 출제 대기)
