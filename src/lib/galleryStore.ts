@@ -70,6 +70,10 @@ export interface TrpgLog {
   originalName?: string;
   visibility: Visibility;
   password?: string;         // 열람 비밀번호 (선택) — 권한이 없어도 비밀번호로 열람 가능
+  // 목록 표시 여부 (v2.0 사용자 요청) — 접근권한(누가 열 수 있는지)과는 별개로, 목록에 줄이 뜰지만 정하는
+  // 스위치. 나만보기(private)여도 이걸 켜지 않으면 관리자 목록에서 사라지지 않는다 — 반대로 이걸 켜면
+  // 전체공개여도 목록에서만 빠지고 직접 링크로는 그대로 열린다. 관리자는 편집모드에서 숨김 표시로 계속 본다
+  listHidden?: boolean;
 }
 
 /** № 자리 표시 — 직접 입력한 텍스트가 있으면 그대로, 없으면 자동 № 0XX */
@@ -132,7 +136,8 @@ export const DEFAULT_TRPG_SETTINGS: TrpgSettings = {
   },
 };
 
-export const DOTORI_STATUS_KEYS: DotoriStatus[] = ['pledge', 'undecided', 'confirmed', 'done'];
+// 일정미정이 공수표보다 먼저 오게 (v2.0 사용자 요청)
+export const DOTORI_STATUS_KEYS: DotoriStatus[] = ['undecided', 'pledge', 'confirmed', 'done'];
 
 /** 도토리 상태 뱃지 스타일 (카드 우상단 — 공수표/일정 확정만 표시) */
 export function dotoriBadgeStyle(st: DotoriStatusStyle): CSSProperties {

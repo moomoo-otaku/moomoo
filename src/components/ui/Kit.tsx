@@ -179,9 +179,19 @@ export function KStep({ value, onChange, min = 0, max = 99, step = 1, suffix }: 
 /* ---------- 커스텀 셀렉트 (화살표 수직 중앙 정렬, v1.9) ----------
    옵션 패널은 body 포털(fixed)로 띄움 — 패널의 overflow:hidden에 잘리지 않음 */
 export interface KOption { value: string; label: React.ReactNode }
-export function KSelect({ options, value, onChange, minWidth, placeholder }: {
-  options: KOption[]; value: string; onChange: (v: string) => void; minWidth?: number; placeholder?: string;
+// 트리거 폭 상한 기본값 (v2.0 사용자 요청) — 개별 호출부가 maxWidth를 안 줘도 긴 이름(폰트 이름 등)
+// 때문에 가로로 계속 늘어나지 않게. minWidth가 이보다 크면 그쪽을 따른다(더 좁게 만들지 않음)
+const SELECT_MAX_W_DEFAULT = 210;
+
+export function KSelect({ options, value, onChange, minWidth, maxWidth, placeholder }: {
+  options: KOption[]; value: string; onChange: (v: string) => void;
+  minWidth?: number;
+  /** 긴 이름이 들어와도 이만큼까지만 넓어지고 나머지는 … 로 줄인다 (v2.0) — 목록은 필요한 만큼 넓게 뜬다.
+   *  생략하면 SELECT_MAX_W_DEFAULT가 적용된다 — 넓혀야 할 이유가 있을 때만 명시로 늘릴 것 */
+  maxWidth?: number;
+  placeholder?: string;
 }) {
+  const effMaxWidth = maxWidth ?? Math.max(SELECT_MAX_W_DEFAULT, minWidth ?? 0);
   const [open, setOpen] = useState(false);
   const [pos, setPos] = useState<{ left: number; top: number; width: number } | null>(null);
   const ref = useRef<HTMLDivElement>(null);
@@ -215,11 +225,16 @@ export function KSelect({ options, value, onChange, minWidth, placeholder }: {
 
   const cur = options.find(o => o.value === value);
   return (
-    <div ref={ref} className={`k-select ${open ? 'open' : ''}`} style={minWidth ? { minWidth } : undefined}>
+    <div ref={ref} className={`k-select ${open ? 'open' : ''}`}
+      style={{ ...(minWidth ? { minWidth } : null), maxWidth: effMaxWidth }}>
       <div className="cur" onClick={() => (open ? setOpen(false) : openAt())}>{cur?.label ?? placeholder ?? '선택'}</div>
       {open && pos && typeof document !== 'undefined' && createPortal(
         <div ref={popRef} className="k-sel-pop light-scroll"
-          style={{ left: pos.left, top: pos.top, width: pos.width }}>
+          /* 트리거가 좁아도 목록은 이름이 다 보이게 — 화면 오른쪽을 넘지 않는 선에서 */
+          style={{
+            left: pos.left, top: pos.top, minWidth: pos.width,
+            maxWidth: Math.max(pos.width, window.innerWidth - pos.left - 12),
+          }}>
           {options.map(o => (
             <div key={o.value} className={o.value === value ? 'sel' : ''}
               onClick={() => { onChange(o.value); setOpen(false); }}>

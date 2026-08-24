@@ -87,9 +87,11 @@ const DEFAULT_STATE: MainState = {
 };
 
 const STORAGE_KEY = 'ohome.main.v1';
-/** 편집모드를 지원하는 페이지 (v1.9 — 카드 그리드 드래그 정렬 포함) */
-const EDIT_PAGES = ['/', '/comm-apply', '/chars', '/rels', '/comm', '/backup', '/dotori', '/tchars', '/playlog'];
-const EDIT_PAGE_NAMES = '메인 · 신청자 리스트 · 캐릭터 · 자관 · 커미션 · 갤러리 · 도토리 · TRPG 캐릭터 · 플레이기록';
+/** 편집모드를 지원하는 페이지 (v1.9 — 카드 그리드 드래그 정렬 포함)
+ *  /trpg 로그 백업이 빠져 있던 것은 실수 — 드래그 정렬·목록 숨김 확인 모두 이 토글이 있어야 켜진다
+ *  (v2.0 사용자 발견 — 목록 숨김 기능을 만들다 보니 편집모드 자체가 이 페이지에서 켜지지 않는 걸 발견) */
+const EDIT_PAGES = ['/', '/comm-apply', '/chars', '/rels', '/comm', '/backup', '/dotori', '/tchars', '/playlog', '/trpg'];
+const EDIT_PAGE_NAMES = '메인 · 신청자 리스트 · 캐릭터 · 자관 · 커미션 · 갤러리 · 도토리 · TRPG 캐릭터 · 플레이기록 · TRPG 로그';
 
 interface MainCtx {
   state: MainState;
@@ -303,4 +305,31 @@ export function useMainStore(): MainCtx {
   const ctx = useContext(Ctx);
   if (!ctx) throw new Error('useMainStore must be used within MainStoreProvider');
   return ctx;
+}
+
+/* ---------- 이미지 위젯 슬라이드 (v2.0) ---------- */
+
+export interface DecoSlide {
+  id: string;
+  imgId: string;
+  crop?: import('@/components/ui/CropEditor').CropValue;
+  link?: string;
+}
+
+/**
+ * 이미지 위젯의 장면 목록.
+ * 예전에는 이미지 한 장(imgId/crop/link)만 담았다 — 그 저장분도 한 장짜리 목록으로 읽어
+ * 화면·편집기가 슬라이드 하나로만 다루면 되게 한다.
+ */
+export function decoSlides(settings: Record<string, unknown>): DecoSlide[] {
+  const list = settings.slides as DecoSlide[] | undefined;
+  if (Array.isArray(list) && list.length) return list.filter(s => s?.imgId);
+  const imgId = settings.imgId as string | undefined;
+  if (!imgId) return [];
+  return [{
+    id: 'legacy',
+    imgId,
+    crop: settings.crop as DecoSlide['crop'],
+    link: settings.link as string | undefined,
+  }];
 }

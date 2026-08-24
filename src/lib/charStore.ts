@@ -14,7 +14,7 @@ export interface CharTab {
 
 export interface Character {
   id: string;
-  name: string;          // 영문 대표명 (전용 폰트 적용 대상)
+  name: string;          // 대표 이름 (전용 폰트 적용 대상)
   sub: string;           // 한글명 · 소속 한 줄
   color: string;         // 대표 테마색 (말풍선·리스트 점)
   // 상세 페이지 테마 (v1.9 사용자 확정) — custom이면 대표 테마색으로 홈 팔레트 임시 전환 (4.18 방식)
@@ -175,6 +175,15 @@ export interface Relation {
   illuOn?: string;               // 전신/일러 스위치 선택색 (미지정: 포인트색)
   nameColor?: string;            // 자관명(히어로 타이틀) 글씨색 (v1.9 — 미지정: 테마)
   cpColor?: string;              // 캐치프레이즈 글씨색 (미지정: 테마)
+  cpTagBg?: string;              // CP/NCP 뱃지 배경색 (v2.0 — 미지정: 기본 pill)
+  cpTagFg?: string;              // CP/NCP 뱃지 글씨색 (v2.0)
+  nameShadowColor?: string;      // 자관명 그림자 색 (v2.0 — 미지정: 검정)
+  nameShadow?: number;           // 자관명 그림자 강도 % — 0~200, 미지정 100(기존 세기와 동일)
+  // 헤더 이미지가 없을 때 대신 깔 배경 그라데이션 (v2.0 사용자 요청) — 색 2개 + 각도.
+  // 미지정이면 예전처럼 아무것도 안 그린다 (배경 강제 없음)
+  headerBgG1?: string;
+  headerBgG2?: string;
+  headerBgAngle?: number;
   thumbId?: string;              // 리스트 썸네일 (IndexedDB, 4:3 크롭)
   thumbCrop?: import("@/components/ui/CropEditor").CropValue;
   members: RelMember[];          // 2인 = 좌/우, 3인+ = 다인 리스트

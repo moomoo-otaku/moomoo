@@ -80,6 +80,7 @@ function FontRoleRow({ role }: { role: FontRole }) {
     <div className="set-row" style={{ flexWrap: 'wrap' }}>
       <div className="l"><b>{ROLE_LABEL[role].label}</b><small>{ROLE_LABEL[role].desc}</small></div>
       <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+        {/* 폰트 이름이 길어도 줄이 넘어가지 않게 상한을 둔다 — 넘치면 … (v2.0 사용자 요청) */}
         <KSelect minWidth={170} value={cfg.id} onChange={v => setRole(role, { id: v })}
           options={[
             ...(role === 'dropdown' ? [{ value: FOLLOW_MENU, label: <span>메뉴 폰트와 동일</span> }] : []),
@@ -274,6 +275,11 @@ function DesignPane() {
         <DocTitleControl />
       </div>
 
+      <div className="set-row" style={{ flexWrap: 'wrap' }}>
+        <div className="l"><b>크롤링 설명 문구</b><small>카톡·디스코드 등에 링크 공유 시 제목 아래 뜨는 한 줄 — 비우면 서브타이틀, 그것도 비었으면 기본 문구</small></div>
+        <CrawlDescControl />
+      </div>
+
       {/* 로고 — 텍스트/서브타이틀/정렬/글씨색 (5.2) */}
       <div className="set-row" style={{ flexWrap: 'wrap' }}>
         <div className="l"><b>로고</b><small>상단바 로고 텍스트·아랫줄 서브타이틀·정렬</small></div>
@@ -413,6 +419,14 @@ function DesignPane() {
       </div>
 
       <div className="set-row">
+        <div className="l"><b>스위치 탭</b><small>게시판 말머리·갤러리 보기 전환 등 — 고른 쪽은 아래 진한 버튼색을 그대로 따라갑니다</small></div>
+        <div className="cp-group">
+          <CP label="배경" k="segBg" />
+          <CP label="글씨" k="segFg" />
+        </div>
+      </div>
+
+      <div className="set-row">
         <div className="l"><b>진한 버튼</b><small>등록·저장 버튼과 체크박스·선택 필터 칩 공통</small></div>
         <div className="cp-group">
           <CP label="버튼" k="btnDark" />
@@ -463,6 +477,24 @@ function DesignPane() {
           </div>
           <KStep value={state.vars.ddShadow ?? 100} min={0} max={200} step={10} suffix="%" onChange={v => setVar('ddShadow', v)} />
         </div>
+      </div>
+
+      <SpellCheckRow />
+    </div>
+  );
+}
+
+/** 맞춤법 검사 밑줄 (v2.0 사용자 요청) — 페이지 전체의 빨간 물결줄을 끈다.
+ *  다른 로고·탭제목 설정과 같은 드래프트/SAVE 흐름을 탄다. */
+function SpellCheckRow() {
+  const { site, set } = useSiteDraft();
+  const off = !!site.noSpell;
+  return (
+    <div className="set-row">
+      <div className="l"><b>맞춤법 검사 밑줄</b><small>입력칸·에디터에 브라우저가 그리는 빨간 물결줄 — 끄면 사이트 전체에서 보이지 않습니다</small></div>
+      <div className="mini-seg">
+        <button className={!off ? 'on' : ''} onClick={() => set({ noSpell: false })}>표시</button>
+        <button className={off ? 'on' : ''} onClick={() => set({ noSpell: true })}>숨김</button>
       </div>
     </div>
   );
@@ -1051,7 +1083,9 @@ function MoodPane() {
             <div className="l" style={{ display: 'flex', gap: 11, alignItems: 'center' }}>
               <span className="drag-h">⠿</span>
               <span style={{
-                width: 30, height: 30, borderRadius: '50%', display: 'grid', placeItems: 'center',
+                width: 30, height: 30, borderRadius: '50%',
+                // 줄높이 1 — 상자가 아니라 글자를 가운데로 (v2.0 사용자 발견)
+                display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1,
                 background: moodTint(m.color), color: m.color, fontSize: 14,
               }}>{m.icon}</span>
             </div>
@@ -1090,6 +1124,17 @@ function DocTitleControl() {
     // 값이 드래프트 저장소를 거쳐 되돌아오므로 한글 조합이 깨지지 않는 인풋을 쓴다
     <LiveInput value={site.docTitle ?? ''} onValue={v => set({ docTitle: v })}
       placeholder={`${site.title} — 개인홈`}
+      style={{ width: 260, height: 35, boxSizing: 'border-box' }} />
+  );
+}
+
+/** 크롤링 설명 문구 (v2.0 사용자 요청) — 카톡·디스코드 등 링크 공유 시 제목 아래 뜨는 설명줄.
+ *  탭 제목과 같은 자리(디자인 탭)에 바로 이어서 둔다 */
+function CrawlDescControl() {
+  const { site, set } = useSiteDraft();
+  return (
+    <LiveInput value={site.crawlDesc ?? ''} onValue={v => set({ crawlDesc: v })}
+      placeholder="자캐놀이용 개인 아카이브"
       style={{ width: 260, height: 35, boxSizing: 'border-box' }} />
   );
 }
@@ -2219,6 +2264,14 @@ function CommPane() {
       </div>
 
       <div className="set-row">
+        <div className="l"><b>슬롯 표시 기준</b><small>리스트·상세에 3/5로 적을 때 앞 숫자를 무엇으로 볼지 — 운영 방식에 따라 다릅니다</small></div>
+        <div className="mini-seg">
+          <button className={(st.slotDisplay ?? 'used') === 'used' ? 'on' : ''} onClick={() => patch({ slotDisplay: 'used' })}>채워진 슬롯</button>
+          <button className={st.slotDisplay === 'remain' ? 'on' : ''} onClick={() => patch({ slotDisplay: 'remain' })}>남은 슬롯</button>
+        </div>
+      </div>
+
+      <div className="set-row">
         <div className="l"><b>신청자 리스트 공개범위</b><small>리스트 자체의 공개 — 각 신청 내용은 별개(관리자/허용된 본인만)</small></div>
         <KSelect minWidth={130} value={st.applyVisibility} onChange={v => patch({ applyVisibility: v as CommSettings['applyVisibility'] })}
           options={[
@@ -2226,6 +2279,11 @@ function CommPane() {
             { value: 'member', label: '멤버공개' },
             { value: 'private', label: '비공개' },
           ]} />
+      </div>
+
+      <div className="set-row">
+        <div className="l"><b>신청 휴지통 보관 기간</b><small>휴지통으로 옮긴 신청을 며칠 두었다가 없앨지 — 기간이 지나면 목록을 열 때 자동으로 사라집니다</small></div>
+        <KStep value={st.trashDays ?? 30} min={1} max={365} suffix="일" onChange={v => patch({ trashDays: v })} />
       </div>
 
       <h3 style={{ marginTop: 26 }}>커미션 뱃지</h3>

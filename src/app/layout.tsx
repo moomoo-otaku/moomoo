@@ -14,6 +14,8 @@ import { ImgProtect } from '@/components/shell/ImgProtect';
 import { SetupGate } from '@/components/shell/SetupGate';
 import { DocTitle } from '@/components/shell/DocTitle';
 import { SettingSync } from '@/components/shell/SettingSync';
+import { UploadBusy } from '@/components/shell/UploadBusy';
+import { SpellCheck } from '@/components/shell/SpellCheck';
 import { PageFrame } from '@/lib/pageRefresh';
 import { ServerBoot } from '@/components/shell/ServerBoot';
 import { siteMeta } from '@/lib/siteMeta';
@@ -24,8 +26,9 @@ import { siteMeta } from '@/lib/siteMeta';
  * 여기서 같은 설정을 한 번 읽어 제목을 맞춘다 (읽기 실패하면 기본값).
  */
 export async function generateMetadata(): Promise<Metadata> {
-  const { title, subtitle } = await siteMeta();
-  const description = subtitle?.trim() || '자캐놀이용 개인 아카이브';
+  const { title, subtitle, crawlDesc } = await siteMeta();
+  // 크롤링 설명 문구 (v2.0 사용자 요청) — 환경설정에서 직접 지정 > 서브타이틀 > 기본 문구
+  const description = crawlDesc?.trim() || subtitle?.trim() || '자캐놀이용 개인 아카이브';
   return {
     title,
     description,
@@ -42,6 +45,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="ko">
       <head>
+        {/* 테마 FOUC 방지 — <body> 안에 있으면 body 배경이 :root의 다크 기본값으로 먼저 페인트될 여지가
+            있다(사용자 발견 — "처음 접속할 때 기본 다크모드가 깜빡") — body 자체가 파싱되는 순간 CSS만으로도
+            그려질 수 있기 때문. <head> 맨 앞으로 옮겨 렌더 차단 구간(첫 페인트 전) 안에서 먼저 실행되게 한다 (v2.0) */}
+        <script dangerouslySetInnerHTML={{
+          __html: `(function(){try{var m=JSON.parse(localStorage.getItem('ohome.themeCss.v1'));if(m){var s=document.documentElement.style;for(var k in m)s.setProperty(k,m[k]);}}catch(e){}})();`,
+        }} />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
           href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Noto+Serif+KR:wght@500;700&display=swap"
@@ -49,10 +58,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body>
-        {/* 테마 FOUC 방지 — 저장해 둔 CSS 변수 맵을 첫 페인트 전에 적용 (기본 다크 → 사용자 테마 깜빡임 제거) */}
-        <script dangerouslySetInnerHTML={{
-          __html: `(function(){try{var m=JSON.parse(localStorage.getItem('ohome.themeCss.v1'));if(m){var s=document.documentElement.style;for(var k in m)s.setProperty(k,m[k]);}}catch(e){}})();`,
-        }} />
         {/* 서버 연결 확정 후에 앱을 그림 — 설정(ohome.config.json/로컬/env)을 한 번 읽는다 (v2.0) */}
         <ServerBoot>
         <ThemeProvider>
@@ -79,6 +84,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   <DocTitle />
                   {/* 설정이 서버에 저장되지 않았을 때 알림 (v2.0) — 조용히 실패하면 원인을 알 수 없다 */}
                   <SettingSync />
+                  {/* 이미지 올리는 중 표시 (v2.0) — 느린 업로드를 다시 누르지 않게 */}
+                  <UploadBusy />
+                  {/* 맞춤법 검사 밑줄 숨김 — 디자인 탭 (v2.0) */}
+                  <SpellCheck />
                   </SetupGate>
                 </BgmStoreProvider>
               </MainStoreProvider>
