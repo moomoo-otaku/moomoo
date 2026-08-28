@@ -734,10 +734,14 @@ export default function RelDetailPage() {
       : [asAu(rel.members[0] ?? null), asAu(rel.members[1] ?? null)])
     : [];
 
-  /** 이 멤버를 반대쪽 자리로 (좌 ↔ 우) */
+  /** 이 멤버를 반대쪽 자리로 (좌 ↔ 우).
+   *  오른쪽을 왼쪽으로 옮길 때는 **반대쪽 캐릭터를 오른쪽으로 지정**한다 (v2.0 사용자 제보) —
+   *  예전에는 지정을 지우기만 해서, 등록 순서상 원래 오른쪽이던 캐릭터(보통 두 번째로 넣은
+   *  상대 캐릭터)는 지워도 그대로 오른쪽이라 아무 일도 일어나지 않았다. */
   const moveSide = (cid: string) => {
     const nowRight = pairSlots[1]?.charId === cid;
-    updateRel({ pairRight: nowRight ? undefined : cid });
+    const other = rel.members.find(m => m.charId !== cid)?.charId;
+    updateRel({ pairRight: nowRight ? other : cid });
   };
 
   /** 얼굴칸(1:1) 크롭 다시 잡기 — 캐릭터의 3:4 썸네일과 별개로 이 자관에만 저장 (v2.0) */
